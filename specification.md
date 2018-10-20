@@ -18,7 +18,7 @@ The `PRINTF` family produce output according to a format as described below. `PR
 
 These three words write the output under the control of a format string that specifies how preceding arguments are converted for output.
 
-`SET-SPRINTF-BUFFER` sets the output buffer for `SPRINTF` only. It is not needed for `PRINTF` or `FPRINTF`. SET-SPRINTF-BUFFER must be used before the first time `SPRINTF` is called for the first time - a default buffer is not provided by the system.
+`SET-SPRINTF-BUFFER` sets the output buffer for `SPRINTF` only. It is not needed for `PRINTF` or `FPRINTF`. `SET-SPRINTF-BUFFER` must be used before the first time `SPRINTF` is called for the first time - a default buffer is not provided by the system.
 
 ## Return value
 
