@@ -90,7 +90,7 @@ There are some user configurable values that can be changed:
 
 Exception codes may be changed if they clash with user error codes.
 
-These are Forth `VALUE`s and may be set to other values in a user program instead of changing the `sprintf.fth` source file e.g.
+These are Forth `VALUEs` and may be set to other values in a user program instead of changing the `sprintf.fth` source file e.g.
   `10 to MAX-PRECISION`
 
 ## Portability
