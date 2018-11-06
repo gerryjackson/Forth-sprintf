@@ -18,7 +18,7 @@ It is assumed that the reader is familiar with `PRINTF`, if not there are tutori
 
 Download the files and unzip the files into a directory of your choice.
 
-Following installation it is best to check that it runs successfully on your system by including the test program `sprintftests.fth` which will include the tester and `SPRINTF` source files. Note that if using SwiftForth please type this definition (see the Portability section below):
+Following installation it is best to check that it runs successfully on your system by including the test program `sprintftests.fth` which will include the tester and `SPRINTF` source files. Note that if using SwiftForth please type this definition before running the test program (see the Portability section below):
 
 `create swiftforth`
    
@@ -64,7 +64,7 @@ Number of errors:    0
 ```
 ## Usage
 
-To use `sprintf.fth` simply include the file. Note that if your Forth system does not have the standard word `REPRESENT` then it is assumed that floating point has not been implemented and floating point functionality is not compiled.
+To use `sprintf.fth` simply include the file. Note that if your Forth system does not have the standard floating point word `REPRESENT` then it is assumed that floating point has not been implemented and floating point functionality is not compiled.
 
 Example
    `s" Mary" 23 s" My sister %s is %d years old." printf`
@@ -101,41 +101,41 @@ The `SPRINTF` test program has run successfully under Windows 10 on 32 and 64 bi
 
 The following is just a summary of features, see file `printf-spec.md` for more details 
 
-A conversion specification starts with the character % and takes this form:
+A conversion specification starts with the character `%` and takes this form:
 
-   `%<flags><width><precision><length><conversion type>`
+   `%<flags><width>.<precision><length><conversion type>`
 
-Except for the `%` character and `<conversion type>` the fields are optional.
+Except for the `%` character and `<conversion type>` the fields are **optional**.
 
-The `<flags>` available are (the flags may be used in any order):.
+The `<flags>` available are (these may be used in any order):.
 
-`#`  an alternative form<br>
-`0`  for left justified conversions the output is padded with 0 characters instead of spaces<br>
-`-`  the conversion is left justified<br>
-`+`  if a signed conversion positive numbers are preceded with a + character<br>
-' '  (space character) if a signed conversion positive numbers are preceded with a space character<br>
+* `#`  an alternative form
+* `0`  for left justified conversions the output is padded with 0 characters instead of spaces
+* `-`  the conversion is left justified
+* `+`  if a signed conversion positive numbers are preceded with a + character
+* ' '  (space character) if a signed conversion positive numbers are preceded with a space character
 
-`<width>` specifies the field width into which the conversion fits.<br>
-`<precision>` specifies the minimum number of significant digits to be generated.
+`<width>`, `<precision>` and `<length>` are:
 
-`<length>` specified by an l (lower case L) character means the argument is a double length integer. Ignored for floating point conversions<br>
+* `<width>` specifies the field width into which the conversion fits.
+* `<precision>` specifies the minimum number of significant digits to be generated. If the precision is present it must be preceded by a `.` character.
+* `<length>` specified by an l (lower case L) character means the argument is a double length integer. Ignored for floating point conversions
 
 The `<conversion types>` available in this implementation are:
 
-d  for a signed decimal integer conversion<br>
-u  for an unsigned decimal integer conversion<br>
-x  for an unsigned hexadecimal integer conversion using the a to f characters<br>
-X  as for x except that characters A to F are used in the result<br>
-o  for an unsigned octal integer conversion<br> 
-b  for an unsigned binary integer conversion<br>
-r  for an integer conversion where a radix (base) value in the range 2 to 36 is used to convert the integer to a string.<br>
-R  as for r except that characters A to Z are used for digits >9<br>
-c  for a single character<br>
-s  for a string<br>
-%  for a % character i.e. the full conversion specification is %%<br>
-e  for a floating point number in exponential form \[-\]d.dddde+/-dd where the d's are decimal digits<br>
-E  as for e except that the form is \[-\]d.ddddE+/-dd<br>
-f  for a floating point number in fractional format in the style \[-\]dddd.ddd<br>
-g  for a floating point format where either the e or f type conversion is carried out.<br>
-G  As for g except that style E or f is used.
-
+* `d`  for a signed decimal integer conversion
+* `u`  for an unsigned decimal integer conversion
+* `x`  for an unsigned hexadecimal integer conversion using the a to f characters
+* `X`  as for x except that characters A to F are used in the result
+* `o`  for an unsigned octal integer conversion
+* `b`  for an unsigned binary integer conversion
+* `r`  for an integer conversion where a radix (base) value in the range 2 to 36 is used to convert the integer to a string.
+* `R`  as for r except that characters A to Z are used for digits >9
+* `c`  for a single character
+* `s`  for a string
+* `%`  for a % character i.e. the full conversion specification is %%
+* `e`  for a floating point number in exponential form \[-\]d.dddde+/-dd where the d's are decimal digits
+* `E`  as for e except that the form is \[-\]d.ddddE+/-dd
+* `f`  for a floating point number in fractional format in the style \[-\]dddd.ddd
+* `g`  for a floating point format where either the e or f type conversion is carried out.
+* `G`  As for g except that style E or f is used.
