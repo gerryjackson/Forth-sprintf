@@ -4,13 +4,13 @@
 \          PRINTF  - displays formatted text
 \          FPRINTF - saves formatted text in a file
 \
-\ Copyright (C) Gerry Jackson 2018
+\ Copyright (C) Gerry Jackson 2018, 2019
 
 \ This software is covered by the MIT software license, a copy of which should
 \ have accompanied this file. If not see https://opensource.org/licenses/MIT
 
 \ ------------------------------------------------------------------------------
-: spf-version$  s" 1.0.0" ;
+: spf-version$  s" 1.0.2" ;
 \ ------------------------------------------------------------------------------
 
 
@@ -551,6 +551,19 @@ variable arguments      \ Reference of the arguments frame
 
 : get-2arg  ( n -- x1 x2 )  dup get-arg swap 1+ get-arg  ;
 
+\ GET-W|P  n1 is value of width or precision field, n2 the width or precision
+\ If * was used for width or precision then n1 is negative and the argument
+\ number is -n1-1. If n2 is negative, which can only happen if * was used, then
+\ it is set to zero.
+
+: get-w|p  ( n1 -- n2 )  dup 0< if 1+ negate get-arg 0 max then  ;
+
+\ GET-WIDTH and GET-PREC should be used whenever their values are used in case
+\ a '*' has been used in the conversion specification
+
+: get-width  ( -- width )  width get-w|p  ;
+: get-prec   ( -- prec  )  prec  get-w|p  ;
+
 \ ---[ Floating Point arguments ]-----------------------------------------------
 
 fp-enabled [if]
@@ -682,7 +695,7 @@ drop
 
 : %s  ( -- caddr u sign )
    arg-num get-2arg
-   precflag if prec min then 0    \ No sign
+   precflag if get-prec min then 0    \ No sign
 ;
 
 \ ---[ Decimal %d conversion ]--------------------------------------------------
@@ -696,7 +709,7 @@ drop
 
 : zero-arg?  ( d -- f ) \ f=true if both argument and precision are zero 
    or if 0 exit then
-   prec 0=
+   get-prec 0=
 ;
 
 \ The prefix for the # flag is either '#' for +ve numbers or '#-' for negative
@@ -809,13 +822,6 @@ drop
 \   e.g. xxx for p=3. A precision of 0 outputs nothing.
 \ The precision is ignored if the #flag is set
 
-\ GET-W|P  n1 is value of width or precision field, n2 the width or precision
-\ If * was used for width or precision then n1 is negative and the argument
-\ number is -n1-1. If n2 is negative, which can only happen if * was used, then
-\ it is set to zero.
-
-: get-w|p  ( n1 -- n2 )  dup 0< if 1+ negate get-arg 0 max then  ;
-
 : nchar>pad  ( ch u -- caddr u )
    <# 0 ?do dup hold loop dup #>
 ;
@@ -826,7 +832,7 @@ drop
    if
       <# ''' hold hold ''' hold 0 0 #> 0 exit       \ No sign
    then
-   precflag if prec get-w|p 0 max max-conv-prec min else 1 then 
+   precflag if get-prec 0 max max-conv-prec min else 1 then 
    nchar>pad 0     ( -- caddr u )    \ No sign
 ;
 
@@ -869,8 +875,8 @@ decimal
    if s" -" else s" " then
 ;
 
-: new-radix-frame  ( -- caddr u width prec argnum fp-argnum flags xt1 xt2 )
-   sprf-pad 0 width 1 1 0
+: new-radix-frame ( width -- caddr u width prec argnum fp-argnum flags xt1 xt2 )
+   sprf-pad 0 rot 1 1 0
    flags [ leftflag@ ucflag+ ] literal and
          [ numflag@ caseflag+ +flag+ ] literal or
    ['] %r ['] %rfp-prefix 
@@ -884,10 +890,12 @@ decimal
 defer make-invalid-string
 
 : bad-fp-number  ( exp sign -- ?? )
-   nip sprf-pad prec max-precision min 2dup $>lower
+   nip sprf-pad get-prec max-precision min 2dup $>lower
    invalid-number swap over fp-nan < and if negate then  ( -- arg )
+   get-width                     ( -- arg width )
    conversions @ arguments @ 2>r
-   >r set-arguments r> 24 swap  ( -- radix arg )  \ Set frame pointer to arguments
+   2>r set-arguments 24          ( -- radix )  \ Set frame pointer to arguments
+   2r>                           ( -- radix arg width )
    new-radix-frame  
    2 set-radix-frame
    1 make-invalid-string
@@ -898,7 +906,7 @@ defer make-invalid-string
 \ ---[ %f conversion ]----------------------------------------------------------
 
 : round?  ( n -- f )   \ True if rounding is required
-   prec + max-precision <
+   get-prec + max-precision <
 ;
 
 : (round)  ( caddr -- )    \ caddr = sprf-pad+u (can't use a DO ... -1 +LOOP)
@@ -958,17 +966,17 @@ defer make-invalid-string
 ;
 
 : frac-0s  ( n -- n2 )  \ n2 is number of 0's right of decimal point
-   dup 0< if negate prec min exit then
+   dup 0< if negate get-prec min exit then
    drop 0
 ;
 
 : frac-digits  ( frac0s n -- frac0s n2 ) \ n2 is number of fractional digits
-   dup round? if drop prec over - 0 max exit then
+   dup round? if drop get-prec over - 0 max exit then
    0 max max-precision swap - 0 max
 ;
 
 : end-0s  ( frac0s #fdigits -- n2 )   \ n2 is number of 0's to meet precision
-   + prec swap - 0 max
+   + get-prec swap - 0 max
 ;
 
 \ Save a decimal point if precision <> 0 or the # flag present
@@ -1032,7 +1040,7 @@ sprf-pad-size constant #rle  \ As SPRF-PAD is used to expand the RLE number
 : %f  ( -- caddr u sign )
    fp-represent >r         ( -- exp sign )  ( R: -- sign )
    dup round?              
-   if sprf-pad over + prec + round then
+   if sprf-pad over + get-prec + round then
    dup >r (%f1)            ( -- #idigits #int0s )
    r@ frac-0s              ( -- #idigits #int0s #frac0s )
    r> frac-digits          ( -- #idigits #int0s #frac0s #fdigits )
@@ -1065,9 +1073,9 @@ sprf-pad-size constant #rle  \ As SPRF-PAD is used to expand the RLE number
 
 : %e  ( -- caddr u sign)
    fp-represent >r            ( -- exp )  ( R: -- sign )
-   prec max-precision min 1+  ( -- exp rpos )
+   get-prec max-precision min 1+  ( -- exp rpos )
    dup >r sprf-pad + round         ( R: -- sign rpos )
-   r> prec over - 1+ (%e) r>  ( -- caddr u sign )
+   r> get-prec over - 1+ (%e) r>  ( -- caddr u sign )
 ;
 
 \ ---[ %g and %G conversions ]--------------------------------------------------
@@ -1088,20 +1096,20 @@ sprf-pad-size constant #rle  \ As SPRF-PAD is used to expand the RLE number
 ;
 
 : %gf-end0s  ( #idig #int0s #frac0s #fdig -- #idig #int0s #frac0s #fdig #end0s)
-   #flag if 4 nsum prec swap - 0 max else 0 then
+   #flag if 4 nsum get-prec swap - 0 max else 0 then
 ;
 
 : %ge-end0s  ( rpos -- rpos #end0s )
-   prec over - #flag 0<> and
+   get-prec over - #flag 0<> and
 ;
 
 : %g  ( -- caddr u )
    fp-represent >r                     ( -- exp )  ( R: -- sign )
-   prec 1 max max-precision min   ( -- exp rpos )
+   get-prec 1 max max-precision min   ( -- exp rpos )
    dup >r sprf-pad + round
 \   sprf-pad r@ + max-precision r@ - '0' fill   \ Shouldn't be necessary but harmless
    sprf-pad r> -trailing0s? 1 max           ( -- exp u )
-   over 1- -4 prec within
+   over 1- -4 get-prec within
    if
       >r dup >r (%f1)            ( -- #idig #i0s ) ( R: -- u exp )
       r> frac-0s r> over 0=      ( -- #idig #i0s #f0s u f ) \ f = #f0s=0 
@@ -1167,7 +1175,7 @@ end-frame parfrsize     \ Size not used
 \ #prec0s = max(precision - u, 0) where u is the converted string length
 
 : get-#prec0s  ( u -- #prec0s )
-   prec get-w|p swap - numflag 0<> and
+   get-prec swap - numflag 0<> and
    0 max max-conv-prec min
 ;
 
@@ -1245,7 +1253,7 @@ end-frame parfrsize     \ Size not used
 : (build-string)  ( args* frames* ca u conversion$ sign --  args* frames* ca u )
    over get-#prec0s        ( -- ... conversion$ sign #prec0s )
    swap prefix-xt execute  ( -- ... conversion$ #prec0s prefix$ )
-   width get-w|p max-conv-width min 0flag leftflag
+   get-width max-conv-width min 0flag leftflag
    frame @ >r set-frame -8 frame +!    \ new frame starts at conversion$
    get-padding             ( -- ... conversion$ #prec0s prefix$ #rsp #l0s #lsp )
    bl concat-chars         ( -- ... conversion$ #prec0s prefix$ #rsp #l0s )
