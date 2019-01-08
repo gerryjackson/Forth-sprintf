@@ -4,6 +4,8 @@ Many languages provide a family of PRINTF function either in a library or as par
 
 It is assumed that the reader is familiar with `PRINTF`, if not there are tutorials and descriptions readily available on the internet.
 
+See file `history.txt` for changes in the latest version.
+
 ## User words
 
 `PRINTF ( arguments* format-string -- )` outputs the result to the user terminal
@@ -58,7 +60,7 @@ End of tests
 -----[ Report ]-------
 Stack empty
 FP stack depth:      0
-Number of tests:   461
+Number of tests:   475
 Number of errors:    0
 ----------------------
 ```
