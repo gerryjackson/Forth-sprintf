@@ -1,0 +1,16 @@
+Sprintf Versions
+~~~~~~~~~~~~~~~~
+
+07/01/2019 Version 1.0.2
+   - Bug fixed in BAD-FP-NUMBER and NEW-RADIX-FRAME caused by use of GET-WIDTH
+   - Added GET-WIDTH and GET-PREC to replace PREC and WIDTH to ensure that when
+     * is used for the width and precision field values, the correct value is
+     used
+
+26/11/2018 Version 1.0.1
+   - Changed README.MD so that theforth.net displayed the conversion specifiers
+     etc properly at the end of the file (theforth.net can't handle <br> tags
+     whereas GitHub can).
+
+10/10/2018 Version 1.0.0
+   - Initial release.
