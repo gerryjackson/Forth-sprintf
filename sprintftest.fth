@@ -409,11 +409,13 @@ t{ 164 -165 b" [%#-+26ld]" sprintf
             s" [#-3043712772162076016476  ]" compare -> 0 }t
 [then]
 
-\ With arguments, leading 0's for Width and precision
+\ With arguments, leading 0's for Width and precision, and argument = 0
 t{ 6 166 b" [%0*.4d]" sprintf s" [  0166]" compare -> 0 }t \ Width on stack
 t{ 5 167 b" [%07.*d]" sprintf s" [  00167]" compare -> 0 }t \ Precision on stack
 t{ 8 6 168 b" [%0*.*d]" sprintf s" [  000168]" compare -> 0 }t \ Both on stack
 t{ 169 b" [%006.04d]" sprintf s" [  0169]" compare -> 0 }t \ 0's at start
+t{ 170 5 3 0 b" [%*.*d]" sprintf s" [  000]" compare -> 170 0 }t
+t{ 171 4 0 0 b" [%*.*d]" sprintf s" [    ]" compare -> 171 0 }t
 
 Testing %u
 t{ 180 b" [%u]" sprintf s" [180]" compare -> 0 }t
@@ -556,6 +558,7 @@ t{ 363 b" [%#0-+ l%]" sprintf s" [%]" compare -> 363 0 }t \ Ignore flags & 'l'
 t{ 364 b" [%05.3%]" sprintf s" [%]" compare -> 364 0 }t \ Ignore width & prec
 t{ 365 7 3 b" [%0*.*%]" sprintf s" [%]" compare -> 365 0 }t \ Ignore width & prec
 t{ 366 9 4 '5' b" [%u %*.*%age: %c]" sprintf s" [366 %age: 5]" compare -> 0 }t
+t{ 367 6 4 ':' b" [%*.*c]" sprintf s" [  ::::]" compare -> 367 0 }t
  
 Testing %s (more tests)
 t{ 380 b" abcde" s" [%7s]" sprintf s" [  abcde]" compare -> 380 0 }t
@@ -565,6 +568,7 @@ t{ 383 b" mnopq" s" [%7.6s]" sprintf s" [  mnopq]" compare -> 383 0 }t
 t{ 384 b" rst" s" [%7.0s]" sprintf s" [       ]" compare -> 384 0 }t
 t{ 385 b" uvwx" s" [%4.s]" sprintf s" [    ]" compare -> 385 0 }t
 t{ 386 b" yz" s" [%.s]" sprintf s" []" compare -> 386 0 }t
+t{ 387 5 2 b" abcdefg" s" [%-*.*s]" sprintf s" [ab   ]" compare -> 387 0 }t
 
 fp-enabled [if]
 Testing %e and %E
@@ -606,6 +610,9 @@ t{ 425 0e1 b" [%e]" sprintf s" [0.000000e+00]" compare -> 425 0 }t
 ;
 \ This should give "1.25...(148 zeroes)...e+100"
 t{ 426 1.25e100 b" %.150e" sprintf check1.25e100%e -> 426 -1 }t
+
+Testing %e with width and precision as arguments
+t{ 427 1.23e0 12 5 b" [%*.*e]" sprintf s" [ 1.23000e+00]" compare -> 427 0 }t
 
 Testing %f
 
@@ -667,6 +674,12 @@ t{ 542 0.123456789012345e-5 b" %.20f" sprintf
                             s" 0.00000123456789012345" compare -> 542 0 }t
 t{ 543 0.123456789012345e-5 b" %.26f" sprintf
                       s" 0.00000123456789012345000000" compare -> 543 0 }t
+
+Testing %f with width and precision as arguments
+t{ 544 9 3 1.2345e0 b" [%*.*f]" sprintf s" [    1.235]" compare -> 544 0 }t 
+t{ 545 11 7 1.2345e0 b" [%0*.*f]" sprintf s" [001.2345000]" compare -> 545 0 }t 
+t{ 546 15 11 1.2345e-3 b" [%-*.*f]" sprintf s" [0.00123450000  ]" compare
+                     -> 546 0 }t
 
 Testing %g and %G
 
@@ -740,11 +753,12 @@ t{ 656 2e5 -1 fpinf b" [%7g]" sprintf s" [   -inf]" compare -> 656 0 }t
 t{ 657 2e5 0 fpinf b" [%-7g]" sprintf s" [inf    ]" compare -> 657 0 }t
 t{ 658 2e5 0 fpinf b" [%- 7g]" sprintf s" [inf    ]" compare -> 658 0 }t
 t{ 659 2e5 0 fpinf b" [%#0+ 9.7g]" sprintf s" [      inf]" compare -> 659 0 }t
+t{ 660 1.5e0 7 5 fasin b" [%*.*g]" sprintf s" [    nan]" compare -> 660 0 }t
 [then]
 
 \ Test large run of zeroes with %g
-t{ 660 0.123456e23 b" %#.33g" sprintf 
-                 s" 12345600000000000000000.0000000000" compare -> 660 0 }t
+t{ 661 0.123456e23 b" %#.33g" sprintf 
+                 s" 12345600000000000000000.0000000000" compare -> 661 0 }t
 : check1.25e143%g  ( caddr u -- f )  \ True to pass
    2dup 2>r 149 = swap       ( -- f caddr )  \ Check overall length
    4 s" 1.25" compare 0= and                 \ check initial digits
@@ -753,11 +767,17 @@ t{ 660 0.123456e23 b" %#.33g" sprintf
    2r> 144 /string s" e+143" compare 0= and
 ;
 \ This should give "1.25...(140 zeroes)...e+143"
-t{ 661 1.25e143 b" %#.143g" sprintf check1.25e143%g -> 661 -1 }t
+t{ 662 1.25e143 b" %#.143g" sprintf check1.25e143%g -> 662 -1 }t
 
 \ Test a 'BAD' return from REPRESENT by calling the appropriate internal word
 pad max-precision bl fill
-t{ 662 pad 1 invalid-number -> 662 #6589 }t
+t{ 663 pad 1 invalid-number -> 663 #6589 }t
+
+t{ 664 1.23e0 10 8 b" [%#*.*g]" sprintf s" [ 1.2300000]" compare -> 664 0 }t
+t{ 665 1.23e-5 11 5 b" [%#*.*g]" sprintf s" [ 1.2300e-05]" compare -> 665 0 }t
+t{ 666 1.2345e0 5 4 b" [%#*.*g]" sprintf s" [1.235]" compare -> 666 0 }t
+t{ 667 1.2345e4 7 5 b" [%#+*.*g]" sprintf s" [+12345.]" compare -> 667 0 }t
+t{ 668 1.234e4 11 4 b" [%#+*.*g]" sprintf s" [ +1.234e+04]" compare -> 668 0 }t
 
 Testing multiple floating point arguments with/out other conversions
 
