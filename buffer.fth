@@ -1,4 +1,4 @@
-\ Formatted output buffer (FOB)
+\ Output buffer
 
 \ Copyright (C) Gerry Jackson 2021
 
