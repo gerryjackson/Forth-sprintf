@@ -24,7 +24,7 @@
 \  - the output is built up from left to right
 \  - any number of buffers can be defined and used whether nested or not
 \  - one allocation of memory can be used for multiple buffers
-\  - every write to the FOB is checked for overflow
+\  - every write to the buffer is checked for buffer overflow
 \  - is unused by the system
 
 cr .( Output Buffer 0.2.6 - MIT software license)
