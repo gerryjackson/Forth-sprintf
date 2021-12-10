@@ -121,8 +121,8 @@ synonym ~@ ~>
    r> ~here 2!
 ;
 
-[test] [if]
-   : ~dump   ~buffer 24 dump  cr ~buf@ type  ;
-[then]
+\ [test] [if]
+\    : ~dump   ~buffer 24 dump  cr ~buf@ type  ;
+\ [then]
 
 \ ---[ End of file ]------------------------------------------------------------
